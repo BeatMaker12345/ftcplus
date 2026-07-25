@@ -1,0 +1,191 @@
+{
+    "motors": [
+        {
+            "id": "gobilda-yellowjacket-6000rpm",
+            "name": "goBILDA Yellow Jacket 6000 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_6000RPM",
+            "tpr": 28.0,
+            "freeSpeedRpm": 6000.0,
+            "stallTorqueNm": 0.144
+        },
+        {
+            "id": "gobilda-yellowjacket-1620rpm",
+            "name": "goBILDA Yellow Jacket 1620 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_1620RPM",
+            "tpr": 103.6,
+            "freeSpeedRpm": 1620.0,
+            "stallTorqueNm": 0.53
+        },
+        {
+            "id": "gobilda-yellowjacket-1150rpm",
+            "name": "goBILDA Yellow Jacket 1150 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_1150RPM",
+            "tpr": 145.6,
+            "freeSpeedRpm": 1150.0,
+            "stallTorqueNm": 0.775
+        },
+        {
+            "id": "gobilda-yellowjacket-435rpm",
+            "name": "goBILDA Yellow Jacket 435 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_435RPM",
+            "tpr": 384.5,
+            "freeSpeedRpm": 435.0,
+            "stallTorqueNm": 1.834
+        },
+        {
+            "id": "gobilda-yellowjacket-312rpm",
+            "name": "goBILDA Yellow Jacket 312 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_312RPM",
+            "tpr": 537.6,
+            "freeSpeedRpm": 312.0,
+            "stallTorqueNm": 2.383
+        },
+        {
+            "id": "gobilda-yellowjacket-223rpm",
+            "name": "goBILDA Yellow Jacket 223 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_223RPM",
+            "tpr": 753.2,
+            "freeSpeedRpm": 223.0,
+            "stallTorqueNm": 3.727
+        },
+        {
+            "id": "gobilda-yellowjacket-117rpm",
+            "name": "goBILDA Yellow Jacket 117 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_117RPM",
+            "tpr": 1425.2,
+            "freeSpeedRpm": 117.0,
+            "stallTorqueNm": 6.708
+        },
+        {
+            "id": "gobilda-yellowjacket-84rpm",
+            "name": "goBILDA Yellow Jacket 84 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_84RPM",
+            "tpr": 1993.6,
+            "freeSpeedRpm": 84.0,
+            "stallTorqueNm": 9.178
+        },
+        {
+            "id": "gobilda-yellowjacket-60rpm",
+            "name": "goBILDA Yellow Jacket 60 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_60RPM",
+            "tpr": 2786.0,
+            "freeSpeedRpm": 60.0,
+            "stallTorqueNm": 13.062
+        },
+        {
+            "id": "gobilda-yellowjacket-43rpm",
+            "name": "goBILDA Yellow Jacket 43 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_43RPM",
+            "tpr": 3892.0,
+            "freeSpeedRpm": 43.0,
+            "stallTorqueNm": 18.148
+        },
+        {
+            "id": "gobilda-yellowjacket-30rpm",
+            "name": "goBILDA Yellow Jacket 30 RPM",
+            "brand": "goBILDA",
+            "series": "Yellow Jacket",
+            "constant": "GoBILDA.YellowJacket.W5203_30RPM",
+            "tpr": 5264.0,
+            "freeSpeedRpm": 30.0,
+            "stallTorqueNm": 24.517
+        }
+    ],
+    "servos": [
+        {
+            "id": "gobilda-dual-mode-torque",
+            "name": "goBILDA Dual Mode Torque",
+            "brand": "goBILDA",
+            "series": "Dual Mode",
+            "constant": "GoBILDA.Servo.DUAL_MODE_TORQUE",
+            "travelDegrees": 300.0,
+            "stallTorqueNm": 2.118
+        },
+        {
+            "id": "gobilda-dual-mode-speed",
+            "name": "goBILDA Dual Mode Speed",
+            "brand": "goBILDA",
+            "series": "Dual Mode",
+            "constant": "GoBILDA.Servo.DUAL_MODE_SPEED",
+            "travelDegrees": 300.0,
+            "stallTorqueNm": 0.912
+        },
+        {
+            "id": "gobilda-dual-mode-super-speed",
+            "name": "goBILDA Dual Mode Super Speed",
+            "brand": "goBILDA",
+            "series": "Dual Mode",
+            "constant": "GoBILDA.Servo.DUAL_MODE_SUPER_SPEED",
+            "travelDegrees": 300.0,
+            "stallTorqueNm": 0.461
+        },
+        {
+            "id": "gobilda-5turn-torque",
+            "name": "goBILDA 5-Turn Torque",
+            "brand": "goBILDA",
+            "series": "Dual Mode",
+            "constant": "GoBILDA.Servo.DUAL_MODE_5TURN_TORQUE",
+            "travelDegrees": 1800.0,
+            "stallTorqueNm": 2.118
+        },
+        {
+            "id": "gobilda-5turn-speed",
+            "name": "goBILDA 5-Turn Speed",
+            "brand": "goBILDA",
+            "series": "Dual Mode",
+            "constant": "GoBILDA.Servo.DUAL_MODE_5TURN_SPEED",
+            "travelDegrees": 1800.0,
+            "stallTorqueNm": 0.912
+        },
+        {
+            "id": "gobilda-5turn-super-speed",
+            "name": "goBILDA 5-Turn Super Speed",
+            "brand": "goBILDA",
+            "series": "Dual Mode",
+            "constant": "GoBILDA.Servo.DUAL_MODE_5TURN_SUPER_SPEED",
+            "travelDegrees": 1800.0,
+            "stallTorqueNm": 0.461
+        },
+        {
+            "id": "gobilda-proton-torque",
+            "name": "goBILDA Proton Torque",
+            "brand": "goBILDA",
+            "series": "Proton",
+            "constant": "GoBILDA.Servo.PROTON_TORQUE",
+            "travelDegrees": 180.0,
+            "stallTorqueNm": 1.324
+        },
+        {
+            "id": "gobilda-proton-speed",
+            "name": "goBILDA Proton Speed",
+            "brand": "goBILDA",
+            "series": "Proton",
+            "constant": "GoBILDA.Servo.PROTON_SPEED",
+            "travelDegrees": 180.0,
+            "stallTorqueNm": 0.589
+        }
+    ],
+    "crservos": [
+        
+    ]
+}
