@@ -1,4 +1,4 @@
-package dev.ftcplus.ftcruntime.controls;
+package dev.ftcplus.core;
 
 public enum GamepadAxis {
     G1_LEFT_STICK_X, G1_LEFT_STICK_Y,

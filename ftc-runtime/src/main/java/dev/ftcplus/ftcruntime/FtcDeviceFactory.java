@@ -7,6 +7,8 @@ import dev.ftcplus.core.DeviceFactory;
 import dev.ftcplus.core.HardwareEntry;
 import dev.ftcplus.core.motor.MotorDelegate;
 import dev.ftcplus.core.motor.MotorSpec;
+import dev.ftcplus.core.sensor.ImuDelegate;
+import dev.ftcplus.core.sensor.ImuOrientation;
 import dev.ftcplus.core.servo.CRServoDelegate;
 import dev.ftcplus.core.servo.CRServoSpec;
 import dev.ftcplus.core.servo.ServoDelegate;
@@ -58,5 +60,11 @@ public final class FtcDeviceFactory implements DeviceFactory {
         return new FtcCRServo(
                 hardwareMap.get(com.qualcomm.robotcore.hardware.CRServo.class, entry.hardwareName())
         );
+    }
+
+    @Override
+    public ImuDelegate createImuDelegate(HardwareEntry entry, ImuOrientation orientation) {
+        String name = entry.hardwareName();
+        return new FtcImu(hardwareMap, name, orientation);
     }
 }

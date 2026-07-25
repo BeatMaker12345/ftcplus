@@ -14,7 +14,7 @@ public abstract class Subsystem<S extends Enum<S>> extends Component {
     protected abstract void defineStates(StateMachine<S> states);
 
     @Override
-    protected final void onInitialize() {
+    protected void onInitialize() {
         stateMachine = new StateMachine<>(signalBus());
         defineStates(stateMachine);
         stateMachine.start(initialState());

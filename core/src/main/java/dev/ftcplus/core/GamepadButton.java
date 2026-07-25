@@ -1,4 +1,4 @@
-package dev.ftcplus.ftcruntime.controls;
+package dev.ftcplus.core;
 
 public enum GamepadButton {
     // Gamepad 1

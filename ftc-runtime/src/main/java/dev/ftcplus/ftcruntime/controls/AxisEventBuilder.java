@@ -1,5 +1,6 @@
 package dev.ftcplus.ftcruntime.controls;
 
+import dev.ftcplus.core.GamepadAxis;
 import dev.ftcplus.core.signal.Event;
 import dev.ftcplus.core.signal.SignalBus;
 

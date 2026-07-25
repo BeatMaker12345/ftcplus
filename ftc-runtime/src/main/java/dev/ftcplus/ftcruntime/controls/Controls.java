@@ -2,6 +2,7 @@ package dev.ftcplus.ftcruntime.controls;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import dev.ftcplus.core.GamepadAxis;
 import dev.ftcplus.core.GamepadFeedback;
 import dev.ftcplus.core.GamepadSide;
 import dev.ftcplus.core.signal.SignalBus;
@@ -32,21 +33,21 @@ public final class Controls implements GamepadFeedback {
     }
 
 
-    public ControlBindingBuilder whenPressed(GamepadButton button) {
+    public ControlBindingBuilder whenPressed(dev.ftcplus.core.GamepadButton button) {
         return new ControlBindingBuilder(
                 heldCondition(button.resolve()),
                 bindings, bus
         );
     }
 
-    public ControlBindingBuilder whenHeld(GamepadButton button) {
+    public ControlBindingBuilder whenHeld(dev.ftcplus.core.GamepadButton button) {
         return new ControlBindingBuilder(
                 heldCondition(button.resolve()),
                 bindings, bus
         );
     }
 
-    public ControlBindingBuilder whenReleased(GamepadButton button) {
+    public ControlBindingBuilder whenReleased(dev.ftcplus.core.GamepadButton button) {
         return new ControlBindingBuilder(
                 heldCondition(button.resolve()),
                 bindings, bus
@@ -103,14 +104,14 @@ public final class Controls implements GamepadFeedback {
     }
 
 
-    private BooleanSupplier heldCondition(GamepadButton button) {
+    private BooleanSupplier heldCondition(dev.ftcplus.core.GamepadButton button) {
         GamepadSide side = button.name().startsWith("G1_")
                 ? GamepadSide.GAMEPAD_1
                 : GamepadSide.GAMEPAD_2;
         return () -> !isInhibited(side) && isHeld(button);
     }
 
-    private boolean isHeld(GamepadButton button) {
+    private boolean isHeld(dev.ftcplus.core.GamepadButton button) {
         switch (button) {
             case G1_A:          return gamepad1.a;
             case G1_B:          return gamepad1.b;
@@ -148,7 +149,7 @@ public final class Controls implements GamepadFeedback {
         }
     }
 
-    double axisValue(GamepadAxis axis) {
+    public double axisValue(GamepadAxis axis) {
         switch (axis) {
             case G1_LEFT_STICK_X:   return gamepad1.left_stick_x;
             case G1_LEFT_STICK_Y:   return gamepad1.left_stick_y;

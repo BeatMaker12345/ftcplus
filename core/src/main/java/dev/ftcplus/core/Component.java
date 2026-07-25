@@ -271,4 +271,8 @@ public abstract class Component {
     public List<Component> children() {
         return children;
     }
+
+    protected GamepadFeedback gamepadFeedback() {
+        return gamepadFeedback;
+    }
 }
