@@ -16,7 +16,7 @@ public abstract class FtcPlusTeleOpMode extends LinearOpMode {
     @Override
     public final void runOpMode() {
         Robot robot = resolveRobot();
-        runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap));
+        runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap), new FtcTelemetryProvider(telemetry));
         controls = new Controls(gamepad1, gamepad2, runtime.signalBus());
         runtime.robot().attachGamepadFeedback(controls);
 

@@ -8,7 +8,7 @@ public abstract class FtcPlusAdvancedOpMode extends LinearOpMode {
     private Runtime runtime;
 
     protected final Runtime createRuntime(Robot robot) {
-        runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap));
+        runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap), new FtcTelemetryProvider(telemetry));
         return runtime;
     }
 

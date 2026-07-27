@@ -10,6 +10,7 @@ import dev.ftcplus.core.Robot;
 import dev.ftcplus.core.Runtime;
 import dev.ftcplus.drivetrains.MecanumDrive;
 import dev.ftcplus.ftcruntime.FtcDeviceFactory;
+import dev.ftcplus.ftcruntime.FtcTelemetryProvider;
 import dev.ftcplus.ftcruntime.RobotResolver;
 import dev.ftcplus.ftcruntime.menu.GamepadMenuInputSource;
 import dev.ftcplus.ftcruntime.menu.TelemetryMenu;
@@ -42,7 +43,7 @@ public abstract class FtcPlusAutoOpMode extends LinearOpMode {
         if (selected == null) return;
 
         Robot<?, ?> robot = RobotResolver.resolve(RobotResolver.findRobotClasses());
-        Runtime runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap));
+        Runtime runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap), new FtcTelemetryProvider(telemetry));
         runtime.initialize();
 
         MecanumDrive drive = findMecanumDrive(robot);

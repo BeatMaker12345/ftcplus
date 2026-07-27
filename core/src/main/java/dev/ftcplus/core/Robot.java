@@ -19,4 +19,5 @@ public abstract class Robot<H extends Enum<H> & HardwareEntry, G> extends Compon
     protected final <T extends Component> T register(T component) {
         return registerChild(component);
     }
+    protected void defineTelemetry() {}
 }

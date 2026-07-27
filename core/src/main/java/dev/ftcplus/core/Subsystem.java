@@ -18,6 +18,7 @@ public abstract class Subsystem<S extends Enum<S>> extends Component {
         stateMachine = new StateMachine<>(signalBus());
         defineStates(stateMachine);
         stateMachine.start(initialState());
+        defineTelemetry();
     }
 
     @Override
@@ -28,4 +29,6 @@ public abstract class Subsystem<S extends Enum<S>> extends Component {
     public final S currentState() {
         return stateMachine.current();
     }
+
+    protected void defineTelemetry() {}
 }

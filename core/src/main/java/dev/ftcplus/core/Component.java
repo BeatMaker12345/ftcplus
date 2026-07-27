@@ -2,6 +2,7 @@ package dev.ftcplus.core;
 
 import dev.ftcplus.core.signal.Signal;
 import dev.ftcplus.core.signal.SignalBus;
+import dev.ftcplus.core.telemetry.TelemetryProvider;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -16,6 +17,7 @@ public abstract class Component {
     private SignalBus signalBus;
     private DeviceFactory deviceFactory;
     private GamepadFeedback gamepadFeedback;
+    private TelemetryProvider telemetry;
 
     Component parent;
     private String name;
@@ -274,5 +276,16 @@ public abstract class Component {
 
     protected GamepadFeedback gamepadFeedback() {
         return gamepadFeedback;
+    }
+
+    final void attachTelemetry(TelemetryProvider telemetry) {
+        this.telemetry = telemetry;
+        for (Component child : children) {
+            child.attachTelemetry(telemetry);
+        }
+    }
+
+    protected final TelemetryProvider telemetry() {
+        return telemetry;
     }
 }
