@@ -24,3 +24,11 @@ java {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
+
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+        maven { url = uri("https://mymaven.bylazar.com/releases") }
+    }
+}

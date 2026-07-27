@@ -19,17 +19,19 @@ import (
 func buildCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "build",
-		Short: "Build the FTC+ project and produce an APK",
+		Short: "Build and deploy the FTC+ project to a connected Control Hub",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			release, _ := cmd.Flags().GetBool("release")
-			return runBuild(release)
+			buildOnly, _ := cmd.Flags().GetBool("build-only")
+			return runBuild(release, buildOnly)
 		},
 	}
 	cmd.Flags().Bool("release", false, "Build a release APK")
+	cmd.Flags().Bool("build-only", false, "Build without deploying (produces AAR in build/)")
 	return cmd
 }
 
-func runBuild(release bool) error {
+func runBuild(release bool, buildOnly bool) error {
 	cfg, err := readProjectConfig()
 	if err != nil {
 		return err
@@ -47,6 +49,12 @@ func runBuild(release bool) error {
 		return err
 	}
 
+    if !buildOnly {
+        if err := ensureAdbConnected(cfg); err != nil {
+            return fmt.Errorf("not connected to Control Hub — run 'ftcplus connect' first: %w", err)
+        }
+    }
+
 	buildDir := filepath.Join("ftcplus-build")
 	if err := os.RemoveAll(buildDir); err != nil {
 		return fmt.Errorf("failed to clean build dir: %w", err)
@@ -61,6 +69,16 @@ func runBuild(release bool) error {
 	localProps := fmt.Sprintf("sdk.dir=%s\n", strings.ReplaceAll(sdkDir, `\`, `\\`))
 	if err := os.WriteFile(filepath.Join(buildDir, "local.properties"), []byte(localProps), 0644); err != nil {
 		return fmt.Errorf("failed to write local.properties: %w", err)
+	}
+
+	commonGradlePath := filepath.Join(buildDir, "build.common.gradle")
+	if data, err := os.ReadFile(commonGradlePath); err == nil {
+		content := strings.Replace(string(data),
+			"repositories {\n}",
+			"repositories {\n    mavenLocal()\n    google()\n    mavenCentral()\n    maven { url \"https://mymaven.bylazar.com/releases\" }\n}",
+			1,
+		)
+		os.WriteFile(commonGradlePath, []byte(content), 0644)
 	}
 
 	if err := generateTeamCodeBuild(buildDir, cfg); err != nil {
@@ -82,9 +100,19 @@ func runBuild(release bool) error {
 		return fmt.Errorf("failed to copy team source: %w", err)
 	}
 
-	task := "assembleDebug"
-	if release {
-		task = "assembleRelease"
+	var task string
+	if buildOnly {
+		if release {
+			task = ":TeamCode:assembleRelease"
+		} else {
+			task = ":TeamCode:assembleDebug"
+		}
+	} else {
+		if release {
+			task = ":TeamCode:installRelease"
+		} else {
+			task = ":TeamCode:installDebug"
+		}
 	}
 
 	fmt.Printf("Building (%s)...\n", task)
@@ -93,7 +121,7 @@ func runBuild(release bool) error {
 		gradlew = "gradlew.bat"
 	}
 
-	cmd := exec.Command(gradlew, ":TeamCode:"+task)
+	cmd := exec.Command(gradlew, task)
 	cmd.Dir = buildDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -102,28 +130,31 @@ func runBuild(release bool) error {
 	)
 
 	if err := cmd.Run(); err != nil {
+		if !buildOnly {
+			return fmt.Errorf("build/deploy failed — is a Control Hub connected over WiFi?\n(use --build-only to build without deploying): %w", err)
+		}
 		return fmt.Errorf("build failed: %w", err)
 	}
 
-	apkPattern := "debug"
-	if release {
-		apkPattern = "release"
+	if buildOnly {
+		aarSrc, err := findOutput(buildDir, func(path string) bool {
+			return strings.HasSuffix(path, ".aar")
+		})
+		if err != nil {
+			return fmt.Errorf("build succeeded but output not found: %w", err)
+		}
+		dst := filepath.Join("build", filepath.Base(aarSrc))
+		if err := os.MkdirAll("build", 0755); err != nil {
+			return err
+		}
+		if err := copyFile(aarSrc, dst); err != nil {
+			return fmt.Errorf("failed to copy output: %w", err)
+		}
+		fmt.Printf("\nBuild successful! Output: %s\n", dst)
+	} else {
+		fmt.Println("\nBuild and deploy successful! Your robot should be ready.")
 	}
 
-	apkSrc, err := findAPK(buildDir, apkPattern)
-	if err != nil {
-		return fmt.Errorf("build succeeded but APK not found: %w", err)
-	}
-
-	apkDst := filepath.Join("build", filepath.Base(apkSrc))
-	if err := os.MkdirAll("build", 0755); err != nil {
-		return err
-	}
-	if err := copyFile(apkSrc, apkDst); err != nil {
-		return fmt.Errorf("failed to copy APK: %w", err)
-	}
-
-	fmt.Printf("\nBuild successful! APK: %s\n", apkDst)
 	return nil
 }
 
@@ -139,6 +170,7 @@ func readProjectConfig() (*projectConfig, error) {
 	return &cfg, nil
 }
 
+
 type teamCodeBuildData struct {
 	Package        string
 	FtcPlusVersion string
@@ -150,62 +182,63 @@ func generateTeamCodeBuild(buildDir string, cfg *projectConfig) error {
 		return err
 	}
 
-	kotlinBuildPath := filepath.Join(teamCodeDir, "build.gradle.kts")
-	if err := os.Remove(kotlinBuildPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("failed to remove stale build.gradle.kts: %w", err)
-	}
-
 	data := teamCodeBuildData{
 		Package:        cfg.Package,
 		FtcPlusVersion: cfg.FtcPlus,
 	}
 
-	tmpl, err := template.New("TeamCode/build.gradle").Parse(teamCodeBuildTemplate)
+	tmpl, err := template.New("").Parse(teamCodeBuildTemplate)
 	if err != nil {
-		return fmt.Errorf("failed to parse TeamCode build template: %w", err)
+		return err
 	}
 
-	buildPath := filepath.Join(teamCodeDir, "build.gradle")
-	f, err := os.Create(buildPath)
+	f, err := os.Create(filepath.Join(teamCodeDir, "build.gradle"))
 	if err != nil {
-		return fmt.Errorf("failed to create %s: %w", buildPath, err)
+		return err
 	}
 	defer f.Close()
 
-	if err := tmpl.Execute(f, data); err != nil {
-		return fmt.Errorf("failed to write %s: %w", buildPath, err)
-	}
-
-	return nil
+	return tmpl.Execute(f, data)
 }
 
-var teamCodeBuildTemplate = `apply from: '../build.common.gradle'
-apply from: '../build.dependencies.gradle'
+var teamCodeBuildTemplate = `plugins {
+    id("com.android.library")
+}
 
 android {
-    namespace = '{{.Package}}'
+    namespace = "{{.Package}}"
+    compileSdk = 34
 
-    packagingOptions {
-        jniLibs.useLegacyPackaging true
+    defaultConfig {
+        minSdk = 24
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 repositories {
     mavenLocal()
-    mavenCentral()
     google()
+    mavenCentral()
+    maven { url = uri("https://mymaven.bylazar.com/releases") }
 }
 
 dependencies {
-    implementation project(':FtcRobotController')
-    implementation 'dev.ftcplus:core:1.0-SNAPSHOT'
+    implementation(project(":FtcRobotController"))
+    implementation("dev.ftcplus:core:{{.FtcPlusVersion}}")
+    implementation("dev.ftcplus:ftc-runtime:{{.FtcPlusVersion}}")
+    implementation("dev.ftcplus:catalog:{{.FtcPlusVersion}}")
+    implementation("dev.ftcplus:drivetrains:{{.FtcPlusVersion}}")
+    implementation("dev.ftcplus:auto:{{.FtcPlusVersion}}")
+    implementation("com.pedropathing:ftc:2.1.2")
+    implementation("com.pedropathing:telemetry:1.0.0")
+    annotationProcessor("dev.ftcplus:annotation-processor:{{.FtcPlusVersion}}")
 }
 `
+
 
 func patchSettings(buildDir string) error {
 	paths := []string{
@@ -231,25 +264,39 @@ func patchSettings(buildDir string) error {
 
 	content := string(data)
 
-	if !strings.Contains(content, `":TeamCode"`) && !strings.Contains(content, `':TeamCode'`) {
-		if strings.HasSuffix(settingsPath, ".kts") {
-			content += "\ninclude(\":TeamCode\")\n"
-		} else {
-			content += "\ninclude ':TeamCode'\n"
-		}
-		return os.WriteFile(settingsPath, []byte(content), 0644)
-	}
-
-	return nil
+	if !strings.Contains(content, "pluginManagement") {
+		prefix := `pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
 }
 
-func findAPK(buildDir, variant string) (string, error) {
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+}
+
+`
+		content = prefix + content
+	}
+
+	if !strings.Contains(content, `":TeamCode"`) && !strings.Contains(content, `':TeamCode'`) {
+		content += "\ninclude ':TeamCode'\n"
+	}
+
+	return os.WriteFile(settingsPath, []byte(content), 0644)
+}
+
+
+func findOutput(buildDir string, match func(string) bool) (string, error) {
 	var found string
 	err := filepath.Walk(buildDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".apk") && strings.Contains(path, variant) {
+		if !info.IsDir() && match(path) {
 			found = path
 		}
 		return nil
@@ -258,34 +305,32 @@ func findAPK(buildDir, variant string) (string, error) {
 		return "", err
 	}
 	if found == "" {
-		return "", fmt.Errorf("no %s APK found", variant)
+		return "", fmt.Errorf("output not found")
 	}
 	return found, nil
 }
+
 
 func copyDir(src, dst string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
 		rel, err := filepath.Rel(src, path)
 		if err != nil {
 			return err
 		}
-
 		target := filepath.Join(dst, rel)
-
 		if info.IsDir() {
 			return os.MkdirAll(target, info.Mode())
 		}
-
 		if err := copyFile(path, target); err != nil {
 			return err
 		}
 		return os.Chmod(target, info.Mode())
 	})
 }
+
 
 func ensureAndroidSdk(ftcPlusLib string) error {
 	sdkDir := filepath.Join(ftcPlusLib, "android-sdk")
@@ -331,7 +376,6 @@ func ensureAndroidSdk(ftcPlusLib string) error {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = strings.NewReader(strings.Repeat("y\n", 10))
-
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("failed to install %s: %w", pkg, err)
 		}
@@ -389,7 +433,7 @@ func unzip(src, dst string) error {
 		}
 
 		out, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode())
-        if err != nil {
+		if err != nil {
 			return err
 		}
 
@@ -407,4 +451,30 @@ func unzip(src, dst string) error {
 		}
 	}
 	return nil
+}
+
+func ensureAdbConnected(cfg *projectConfig) error {
+    target := cfg.ControlHub
+    if target == "" {
+        target = "192.168.43.1:5555"
+    }
+    if !strings.Contains(target, ":") {
+        target += ":5555"
+    }
+
+    fmt.Printf("Connecting to Control Hub (%s)...\n", target)
+
+    exec.Command("adb", "kill-server").Run()
+    exec.Command("adb", "start-server").Run()
+
+    if strings.HasPrefix(target, "192.") || strings.Contains(target, ".") {
+        cmd := exec.Command("adb", "connect", target)
+        out, err := cmd.CombinedOutput()
+        if err != nil || strings.Contains(string(out), "failed") || strings.Contains(string(out), "unable") {
+            return fmt.Errorf("could not connect to %s: %s", target, string(out))
+        }
+        fmt.Printf("Connected to %s\n", target)
+    }
+
+    return nil
 }

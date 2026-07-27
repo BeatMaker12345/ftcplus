@@ -38,7 +38,7 @@ public final class DriveControls {
         }
 
         public DriveControls build() {
-            if (strafe == null || forward == null | turn == null) {
+            if (forward == null | turn == null) {
                 throw new IllegalStateException("strafe, forward, and turn axes are all required");
             }
             return new DriveControls(this);

@@ -200,10 +200,10 @@ func generateOpModeFile(className, dsName string, kind opModeKind) error {
 	}
 
 	annotation := "@TeleOp"
-	baseClass := "FtcPlusOpMode"
+	baseClass := "FtcPlusTeleOpMode"
 	if kind == opModeAuto {
 		annotation = "@Autonomous"
-		baseClass = "FtcPlusOpMode"
+		baseClass = "FtcPlusAutoOpMode"
 	}
 
 	data := opModeTemplateData{

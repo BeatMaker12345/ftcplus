@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    `maven-publish`
 }
 
 group = "dev.ftcplus"
@@ -58,5 +59,13 @@ tasks.register("generateCatalogJson") {
         val gson = groovy.json.JsonOutput.toJson(catalog)
         outputFile.get().asFile.writeText(groovy.json.JsonOutput.prettyPrint(gson))
         println("Generated catalog.json")
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
     }
 }

@@ -6,7 +6,7 @@ import dev.ftcplus.core.UseRobot;
 import java.util.ArrayList;
 import java.util.List;
 
-final class RobotResolver {
+public final class RobotResolver {
 
     private RobotResolver() {}
 
@@ -64,7 +64,7 @@ final class RobotResolver {
         }
     }
 
-    static List<Class<?>> findRobotClasses() {
+    public static List<Class<?>> findRobotClasses() {
         List<Class<?>> results = new ArrayList<>();
         try {
             Class<?> registry = Class.forName("dev.ftcplus.generated.FtcPlusRegistry");
@@ -107,7 +107,7 @@ final class RobotResolver {
         }
     }
 
-    static Robot<?, ?> resolve(List<Class<?>> robotClasses) {
+    public static Robot<?, ?> resolve(List<Class<?>> robotClasses) {
         return resolve(robotClasses, null);
     }
 }

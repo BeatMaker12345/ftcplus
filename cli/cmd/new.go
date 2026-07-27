@@ -21,11 +21,12 @@ type newArgs struct {
 }
 
 type projectConfig struct {
-	TeamName   string `json:"teamName"`
-	TeamNumber string `json:"teamNumber"`
-	Package    string `json:"package"`
-	SdkTag     string `json:"sdkTag"`
-	FtcPlus    string `json:"ftcplus"`
+    TeamName   string `json:"teamName"`
+    TeamNumber string `json:"teamNumber"`
+    Package    string `json:"package"`
+    SdkTag     string `json:"sdkTag"`
+    FtcPlus    string `json:"ftcplus"`
+    ControlHub string `json:"controlHub,omitempty"`
 }
 
 func newCmd() *cobra.Command {

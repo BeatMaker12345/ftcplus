@@ -124,4 +124,9 @@ public abstract class MecanumDrive extends Subsystem<MecanumDrive.State> {
             super(entry, orientation);
         }
     }
+
+    public final Motor frontLeft()  { return frontLeft; }
+    public final Motor frontRight() { return frontRight; }
+    public final Motor backLeft()   { return backLeft; }
+    public final Motor backRight()  { return backRight; }
 }
