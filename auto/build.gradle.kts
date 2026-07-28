@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":drivetrains"))
     implementation(project(":core"))
     implementation("org.jetbrains:annotations:24.0.1")
+    implementation(project(":limelight"))
     compileOnly(files("../ftc-runtime/libs/RobotCore-classes.jar"))
     compileOnly(files("../ftc-runtime/libs/Hardware-classes.jar"))
 }

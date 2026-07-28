@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":limelight"))
     compileOnly(files("libs/RobotCore-classes.jar"))
     compileOnly(files("libs/Hardware-classes.jar"))
     compileOnly(files("libs/android-classes.jar"))

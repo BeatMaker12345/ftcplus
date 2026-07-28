@@ -1,9 +1,8 @@
 package dev.ftcplus.core.sensor;
 
-import dev.ftcplus.core.HardwareDevice;
 import dev.ftcplus.core.HardwareEntry;
 
-public class Imu extends HardwareDevice {
+public class Imu extends Sensor {
 
     private final HardwareEntry entry;
     private final ImuOrientation orientation;

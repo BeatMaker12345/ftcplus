@@ -225,10 +225,10 @@ func generateProjectFiles(dir string, args newArgs, sdkTag, ftcPlusVersion strin
 
 	files := map[string]string{
 		filepath.Join(dir, ".gitignore"):                     gitignoreTemplate,
-		filepath.Join(srcBase, "Robot.java"):                 robotTemplate,
-		filepath.Join(srcBase, "config", "Hardware.java"):    hardwareTemplate,
-		filepath.Join(srcBase, "config", "Globals.java"):     globalsTemplate,
-		filepath.Join(srcBase, "config", "Config.java"):      configTemplate,
+		filepath.Join(srcBase, "Robot.java"):                      robotTemplate,
+		filepath.Join(srcBase, "config", "Hardware.java"):         hardwareTemplate,
+		filepath.Join(srcBase, "config", "Globals.java"):          globalsTemplate,
+		filepath.Join(srcBase, "config", "Properties.java"):       propertiesTemplate,
 	}
 
 	for path, tmplStr := range files {
@@ -295,14 +295,14 @@ var gitignoreTemplate = `*.iml
 var robotTemplate = `package {{.Package}};
 
 import dev.ftcplus.core.TeamRobot;
-import {{.Package}}.config.Config;
 import {{.Package}}.config.Hardware;
 import {{.Package}}.config.Globals;
+import {{.Package}}.config.Properties;
 
 @TeamRobot(name = "{{.TeamName}}")
-public class Robot extends dev.ftcplus.core.Robot<Hardware, Globals> {
+public class Robot extends dev.ftcplus.core.Robot<Hardware, Globals, Properties> {
     public Robot() {
-        super(new Config());
+        super(Hardware.class, new Globals(), new Properties());
     }
 }
 `
@@ -334,13 +334,16 @@ public class Globals {
 }
 `
 
-var configTemplate = `package {{.Package}}.config;
+var propertiesTemplate = `package {{.Package}}.config;
 
-import dev.ftcplus.core.RobotConfiguration;
+import dev.ftcplus.core.RobotProperties;
 
-public class Config extends RobotConfiguration<Hardware, Globals> {
-    public Config() {
-        super(Hardware.class, new Globals());
-    }
+public class Properties extends RobotProperties {
+    // override to provide accurate values for your robot — all have sensible defaults
+
+    // @Override public double trackWidthInches()                    { return 12.0; }
+    // @Override public double wheelDiameterInches()                 { return 3.78; }
+    // @Override public double maxLinearVelocityCmPerSecond()        { return 45.0; }
+    // @Override public double maxAngularVelocityDegreesPerSecond()  { return 180.0; }
 }
 `

@@ -18,7 +18,7 @@ public final class RobotResolver {
         prefs.edit().putString("ftcplus_selected_robot", name).apply();
     }
 
-    static Robot<?, ?> resolveFromPrefs(
+    static Robot<?, ?, ?> resolveFromPrefs(
             List<Class<?>> robotClasses,
             android.content.SharedPreferences prefs,
             Class<?> requiredBy
@@ -57,7 +57,7 @@ public final class RobotResolver {
         }
 
         try {
-            return (Robot<?, ?>) selected.getDeclaredConstructor().newInstance();
+            return (Robot<?, ?, ?>) selected.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Failed to instantiate robot " + selected.getSimpleName(), e);
@@ -79,7 +79,7 @@ public final class RobotResolver {
         return results;
     }
 
-    static Robot<?, ?> resolve(List<Class<?>> robotClasses, Class<?> requiredBy) {
+    static Robot<?, ?, ?> resolve(List<Class<?>> robotClasses, Class<?> requiredBy) {
         if (robotClasses.isEmpty()) {
             throw new IllegalStateException(
                     "No @Robot class found. Annotate your Robot class with @Robot.");
@@ -99,7 +99,7 @@ public final class RobotResolver {
         }
 
         try {
-            return (Robot<?, ?>) selected.getDeclaredConstructor().newInstance();
+            return (Robot<?, ?, ?>) selected.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new IllegalStateException(
                     "Failed to instantiate robot " + selected.getSimpleName() +
@@ -107,7 +107,7 @@ public final class RobotResolver {
         }
     }
 
-    public static Robot<?, ?> resolve(List<Class<?>> robotClasses) {
+    public static Robot<?, ?, ?> resolve(List<Class<?>> robotClasses) {
         return resolve(robotClasses, null);
     }
 }

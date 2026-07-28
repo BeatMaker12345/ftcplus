@@ -6,11 +6,11 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.Path;
 
 public abstract class AutoAction {
-    private Robot<?, ?> robot;
+    private Robot<?, ?, ?> robot;
     private Follower follower;
     private boolean followingPath = false;
 
-    final void attach(Robot<?, ?> robot, Follower follower) {
+    final void attach(Robot<?, ?, ?> robot, Follower follower) {
         this.robot    = robot;
         this.follower = follower;
     }

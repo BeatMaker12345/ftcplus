@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -52,6 +53,8 @@ func connectWiFi(ip string) error {
 	if err := saveConnectionTarget(ip); err != nil {
 		fmt.Printf("warning: could not save connection target: %v\n", err)
 	}
+
+    startBackgroundWatcher()
 
 	fmt.Printf("Connected! Run 'ftcplus build' to deploy.\n")
 	return nil
@@ -104,6 +107,8 @@ func connectUSB() error {
 		fmt.Printf("warning: could not save connection target: %v\n", err)
 	}
 
+    startBackgroundWatcher()
+
 	fmt.Printf("Connected to %s! Run 'ftcplus build' to deploy.\n", target)
 	return nil
 }
@@ -134,4 +139,28 @@ func saveConnectionTarget(target string) error {
 	}
 
 	return os.WriteFile("ftcplus.json", out, 0644)
+}
+
+func startBackgroundWatcher() error {
+    home, _ := os.UserHomeDir()
+    logFile := filepath.Join(home, ".ftcplus", "watcher.log")
+    pidFile := filepath.Join(home, ".ftcplus", "watcher.pid")
+
+    if data, err := os.ReadFile(pidFile); err == nil {
+        pid := strings.TrimSpace(string(data))
+        exec.Command("kill", pid).Run()
+    }
+
+    cmd := exec.Command(os.Args[0], "watch", "--daemon")
+    logF, _ := os.Create(logFile)
+    cmd.Stdout = logF
+    cmd.Stderr = logF
+
+    if err := cmd.Start(); err != nil {
+        return fmt.Errorf("failed to start watcher: %w", err)
+    }
+
+    os.WriteFile(pidFile, []byte(fmt.Sprintf("%d", cmd.Process.Pid)), 0644)
+    fmt.Printf("Background watcher started (PID %d)\n", cmd.Process.Pid)
+    return nil
 }

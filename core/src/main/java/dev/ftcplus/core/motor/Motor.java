@@ -123,4 +123,9 @@ public abstract class Motor extends HardwareDevice {
             );
         }
     }
+
+    @Override
+    public double estimatedCurrentDraw() {
+        return hasSpec() ? estimateCurrentDraw() : 0;
+    }
 }

@@ -233,6 +233,7 @@ dependencies {
     implementation("dev.ftcplus:catalog:{{.FtcPlusVersion}}")
     implementation("dev.ftcplus:drivetrains:{{.FtcPlusVersion}}")
     implementation("dev.ftcplus:auto:{{.FtcPlusVersion}}")
+    implementation("dev.ftcplus:limelight:{{.FtcPlusVersion}}")
     implementation("com.pedropathing:ftc:2.1.2")
     implementation("com.pedropathing:telemetry:1.0.0")
     annotationProcessor("dev.ftcplus:annotation-processor:{{.FtcPlusVersion}}")

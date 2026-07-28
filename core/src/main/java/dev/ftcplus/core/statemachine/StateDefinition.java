@@ -1,5 +1,6 @@
 package dev.ftcplus.core.statemachine;
 
+import dev.ftcplus.core.power.PowerConstraint;
 import dev.ftcplus.core.signal.Event;
 
 import java.util.HashMap;
@@ -15,6 +16,7 @@ public final class StateDefinition<S extends Enum<S>> {
 
     long transitionAfterMs = -1;
     S transitionAfterTarget;
+    private PowerConstraint constraint;
 
     final Map<Class<? extends Event>, S> eventTransitions = new HashMap<>();
 
@@ -48,4 +50,11 @@ public final class StateDefinition<S extends Enum<S>> {
         this.transitionAfterTarget = next;
         return this;
     }
+
+    public StateDefinition<S> requires(PowerConstraint constraint) {
+        this.constraint = constraint;
+        return this;
+    }
+
+    public PowerConstraint constraint() { return constraint; }
 }

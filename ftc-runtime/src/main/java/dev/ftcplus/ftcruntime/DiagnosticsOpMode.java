@@ -24,7 +24,7 @@ public final class DiagnosticsOpMode extends FtcPlusAdvancedOpMode {
 
     @Override
     public void runOpMode() {
-        Robot<?, ?> robot = RobotResolver.resolve(RobotResolver.findRobotClasses());
+        Robot<?, ?, ?> robot = RobotResolver.resolve(RobotResolver.findRobotClasses());
         Runtime runtime = createRuntime(robot);
 
         MenuHost host = new MenuHost();
@@ -55,7 +55,7 @@ public final class DiagnosticsOpMode extends FtcPlusAdvancedOpMode {
     }
 
 
-    private TelemetryMenu buildMenu(Robot<?, ?> robot, MenuHost host) {
+    private TelemetryMenu buildMenu(Robot<?, ?, ?> robot, MenuHost host) {
         TelemetryMenu root = new TelemetryMenu("Diagnostics", telemetry);
 
         Map<String, List<DiagnosticEntry>> grouped = collectDiagnostics(robot);

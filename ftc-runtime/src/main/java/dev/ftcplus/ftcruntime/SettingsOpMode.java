@@ -37,7 +37,7 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
             if (!opModeIsActive()) return;
         }
 
-        Robot<?, ?> robot = RobotResolver.resolveFromPrefs(robotClasses, prefs, null);
+        Robot<?, ?, ?> robot = RobotResolver.resolveFromPrefs(robotClasses, prefs, null);
         loadSettings(robot, prefs);
 
         MenuHost host = new MenuHost();
@@ -65,7 +65,11 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
             host.update(input);
         }
 
-        saveSettings(robot, prefs);
+        try {
+            saveSettings(robot, prefs);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void showRobotPicker(List<Class<?>> robotClasses, SharedPreferences prefs) {
@@ -94,7 +98,7 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
     }
 
 
-    private TelemetryMenu buildMenu(Robot<?, ?> robot, SharedPreferences prefs, MenuHost host) {
+    private TelemetryMenu buildMenu(Robot<?, ?, ?> robot, SharedPreferences prefs, MenuHost host) {
         TelemetryMenu root = new TelemetryMenu("Settings", telemetry);
 
         Map<String, List<SettingEntry>> grouped = collectSettings(robot);
@@ -278,7 +282,7 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
         }
     }
 
-    private void saveSettings(Component root, SharedPreferences prefs) {
+    private void saveSettings(Component root, SharedPreferences prefs) throws IllegalAccessException {
         Map<String, List<SettingEntry>> grouped = collectSettings(root);
         for (List<SettingEntry> entries : grouped.values()) {
             for (SettingEntry entry : entries) {
@@ -289,7 +293,7 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
         }
     }
 
-    private void saveField(Field field, Object instance, SharedPreferences prefs) {
+    private void saveField(Field field, Object instance, SharedPreferences prefs) throws IllegalAccessException {
         String key = field.getDeclaringClass().getName() + "." + field.getName();
         SharedPreferences.Editor editor = prefs.edit();
         try {
@@ -307,6 +311,11 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
             else if (type.isEnum())
                 editor.putString(key, ((Enum<?>) field.get(instance)).name());
             editor.apply();
+            CalibrationOpMode.streamSettingChange(
+                    field.getDeclaringClass().getName(),
+                    field.getName(),
+                    field.get(instance)
+            );
         } catch (Exception ignored) {}
     }
 
@@ -340,7 +349,7 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
     }
 
 
-    private Robot<?, ?> resolveRobot() {
+    private Robot<?, ?, ?> resolveRobot() {
         List<Class<?>> classes = RobotResolver.findRobotClasses();
         // TODO: pick robot from Settings
         return RobotResolver.resolve(classes);

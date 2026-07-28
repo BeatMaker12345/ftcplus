@@ -3,9 +3,12 @@ package dev.ftcplus.auto;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.localization.Localizer;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import dev.ftcplus.auto.pedro.FtcPlusMecanumDrivetrain;
+import dev.ftcplus.core.Component;
 import dev.ftcplus.core.Robot;
 import dev.ftcplus.core.Runtime;
 import dev.ftcplus.drivetrains.MecanumDrive;
@@ -16,6 +19,7 @@ import dev.ftcplus.ftcruntime.menu.GamepadMenuInputSource;
 import dev.ftcplus.ftcruntime.menu.TelemetryMenu;
 import dev.ftcplus.core.menu.MenuHost;
 import dev.ftcplus.core.menu.MenuItem;
+import dev.ftcplus.limelight.Limelight;
 
 import java.util.List;
 
@@ -42,9 +46,10 @@ public abstract class FtcPlusAutoOpMode extends LinearOpMode {
 
         if (selected == null) return;
 
-        Robot<?, ?> robot = RobotResolver.resolve(RobotResolver.findRobotClasses());
+        Robot<?, ?, ?> robot = RobotResolver.resolve(RobotResolver.findRobotClasses());
         Runtime runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap), new FtcTelemetryProvider(telemetry));
         runtime.initialize();
+        injectLimelights(robot, hardwareMap);
 
         MecanumDrive drive = findMecanumDrive(robot);
         if (drive == null) throw new IllegalStateException(
@@ -73,7 +78,7 @@ public abstract class FtcPlusAutoOpMode extends LinearOpMode {
         runtime.stop();
     }
 
-    private MecanumDrive findMecanumDrive(Robot<?, ?> robot) {
+    private MecanumDrive findMecanumDrive(Robot<?, ?, ?> robot) {
         for (dev.ftcplus.core.Component child : robot.children()) {
             if (child instanceof MecanumDrive) return (MecanumDrive) child;
         }
@@ -101,5 +106,20 @@ public abstract class FtcPlusAutoOpMode extends LinearOpMode {
         }
 
         return selected[0];
+    }
+
+    private void injectLimelights(Component component, HardwareMap hwMap) {
+        if (component instanceof Limelight) {
+            Limelight ll = (Limelight) component;
+            try {
+                Limelight3A sdk = hwMap.get(Limelight3A.class, ll.entry().hardwareName());
+                ll.attachLimelight(sdk);
+            } catch (Exception e) {
+                telemetry.addLine("Warning: Limelight '" + ll.entry().hardwareName() + "' not found in config.");
+            }
+            for (Component child : component.children()) {
+                injectLimelights(child, hwMap);
+            }
+        }
     }
 }

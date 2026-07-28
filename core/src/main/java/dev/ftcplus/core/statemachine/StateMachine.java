@@ -1,5 +1,7 @@
 package dev.ftcplus.core.statemachine;
 
+import dev.ftcplus.core.power.PowerBudget;
+import dev.ftcplus.core.power.PowerConstraint;
 import dev.ftcplus.core.signal.Event;
 import dev.ftcplus.core.signal.SignalBus;
 import dev.ftcplus.core.signal.Subscription;
@@ -13,6 +15,12 @@ public final class StateMachine<S extends Enum<S>> {
 
     private S current;
     private long stateEnteredAt;
+    private PowerBudget powerBudget;
+    private PendingTransition<S> pendingTransition;
+
+    public void attachPowerBudget(PowerBudget budget) {
+        this.powerBudget = budget;
+    }
 
     public StateMachine(SignalBus bus) {
         this.bus = Objects.requireNonNull(bus, "bus");
@@ -33,18 +41,24 @@ public final class StateMachine<S extends Enum<S>> {
     public void update() {
         if (current == null) return;
 
+        if (pendingTransition != null) {
+            if (pendingTransition.constraint.check(powerBudget)) {
+                transitionTo(pendingTransition.target);
+                pendingTransition = null;
+            } else if (!pendingTransition.constraint.retryUntilPassed()) {
+                pendingTransition = null;
+            }
+        }
+
         StateDefinition<S> def = definitions.get(current);
         if (def == null) return;
 
-        if (def.onUpdate != null) {
-            def.onUpdate.run();
-        }
+        if (def.onUpdate != null) def.onUpdate.run();
 
         if (def.transitionAfterMs >= 0) {
             long elapsed = System.currentTimeMillis() - stateEnteredAt;
             if (elapsed >= def.transitionAfterMs) {
                 transitionTo(def.transitionAfterTarget);
-                return;
             }
         }
     }
@@ -82,10 +96,38 @@ public final class StateMachine<S extends Enum<S>> {
 
         for (Map.Entry<Class<? extends Event>, S> entry : def.eventTransitions.entrySet()) {
             S target = entry.getValue();
+            StateDefinition<S> targetDef = definitions.get(target);
+            PowerConstraint constraint = targetDef != null ? targetDef.constraint() : null;
+
             Subscription sub = bus.subscribe(entry.getKey(), e -> {
-                if (current == state) transitionTo(target);
+                if (current != state) return;
+
+                if (constraint == null || powerBudget == null) {
+                    transitionTo(target);
+                    return;
+                }
+
+                if (constraint.check(powerBudget)) {
+                    transitionTo(target);
+                } else {
+                    pendingTransition = new PendingTransition<>(target, constraint, e);
+                    Event blocked = constraint.onBlocked();
+                    if (blocked != null) bus.send(blocked);
+                }
             });
             activeSubscriptions.add(sub);
+        }
+    }
+
+    private static final class PendingTransition<S> {
+        final S target;
+        final PowerConstraint constraint;
+        final dev.ftcplus.core.signal.Event triggeringEvent;
+
+        PendingTransition(S target, PowerConstraint constraint, dev.ftcplus.core.signal.Event triggeringEvent) {
+            this.target          = target;
+            this.constraint      = constraint;
+            this.triggeringEvent = triggeringEvent;
         }
     }
 }

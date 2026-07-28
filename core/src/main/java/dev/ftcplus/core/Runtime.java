@@ -6,14 +6,14 @@ import dev.ftcplus.core.telemetry.TelemetryProvider;
 import java.util.Objects;
 
 public final class Runtime {
-    private final Robot<?, ?> robot;
+    private final Robot<?, ?, ?> robot;
     private final TelemetryProvider telemetry;
 
     private LifecycleState state = LifecycleState.CREATED;
 
     private final SignalBus signalBus = new SignalBus();
 
-    public Runtime(Robot<?, ?> robot, DeviceFactory deviceFactory, TelemetryProvider telemetry) {
+    public Runtime(Robot<?, ?, ?> robot, DeviceFactory deviceFactory, TelemetryProvider telemetry) {
         this.robot = Objects.requireNonNull(robot, "robot");
         this.telemetry = Objects.requireNonNull(telemetry, "telemetry");
         this.robot.resolveIdentityInternal();
@@ -24,7 +24,7 @@ public final class Runtime {
         this.robot.attachTelemetry(telemetry);
     }
 
-    public Robot<?, ?> robot() {
+    public Robot<?, ?, ?> robot() {
         return robot;
     }
 
@@ -37,6 +37,7 @@ public final class Runtime {
 
         robot.initializeInternal();
         robot.defineTelemetry();
+        robot.initPowerBudget();
         state = LifecycleState.INITIALIZED;
     }
 
@@ -51,6 +52,7 @@ public final class Runtime {
         requireState(LifecycleState.STARTED);
 
         robot.updateInternal();
+        robot.powerBudget().update();
         signalBus.flush();
         telemetry.update();
     }
