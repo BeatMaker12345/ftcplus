@@ -74,7 +74,7 @@ cd "$FTCPLUS_DIR"
 if [ ! -f "tools/ftcplus-ast.jar" ]; then
   mkdir -p tools
 
-  curl -fsSL "https://github.com/BeatMaker12345/ftcplus/releases/latest/download/ftcplus-ast.jar" \
+  curl -fsSL "https://github.com/BeatMaker12345/ftcplus/releases/download/v0.3.0/ast-tool-1.0-SNAPSHOT.jar" \
     -o "tools/ftcplus-ast.jar"
 fi
 
