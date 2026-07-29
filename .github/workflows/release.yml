@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ftcplus-ast.jar
-          path: ast-tool/build/libs/ast-tool-1.0-SNAPSHOT.jar
+          path: ast-tool/build/libs/ftcplus-ast.jar
 
   release:
     needs: build

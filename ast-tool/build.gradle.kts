@@ -20,6 +20,7 @@ application {
 }
 
 tasks.jar {
+    archiveFileName.set("ftcplus-ast.jar")
     manifest {
         attributes["Main-Class"] = "dev.ftcplus.ast.AstTool"
     }
