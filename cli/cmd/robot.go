@@ -20,14 +20,10 @@ func robotCmd() *cobra.Command {
 			return runRobotAddWizard()
 		},
 	}
-	cmd.AddCommand(&cobra.Command{
-		Use:   "add [name]",
-		Short: "Add a robot",
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRobotAddWizard()
-		},
-	})
+	cmd.AddCommand(robotAddCmd())
+    cmd.AddCommand(robotListCmd())
+    cmd.AddCommand(robotSelectCmd())
+    cmd.AddCommand(robotModifyCmd())
 	return cmd
 }
 
@@ -137,28 +133,28 @@ func generateRobotFile(className, displayName string) error {
 	}
 
 	outputPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"robots",
 		className+".java",
 	)
 
 	configPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"robots",
 		className+"Config.java",
 	)
 
 	hardwarePath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"robots",
 		className+"Hardware.java",
 	)
 
 	globalsPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"robots",
 		className+"Globals.java",

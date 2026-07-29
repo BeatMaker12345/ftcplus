@@ -30,6 +30,7 @@ func Root() *cobra.Command {
     rootCmd.AddCommand(buildCmd())
     rootCmd.AddCommand(connectCmd())
     rootCmd.AddCommand(watchCmd())
+    rootCmd.AddCommand(treeCmd())
 
     return rootCmd
 }

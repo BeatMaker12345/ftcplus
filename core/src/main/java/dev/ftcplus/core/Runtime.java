@@ -4,6 +4,7 @@ import dev.ftcplus.core.signal.SignalBus;
 import dev.ftcplus.core.telemetry.TelemetryProvider;
 
 import java.util.Objects;
+import java.util.ServiceLoader;
 
 public final class Runtime {
     private final Robot<?, ?, ?> robot;
@@ -32,12 +33,24 @@ public final class Runtime {
         return state;
     }
 
+    private DashboardListener dashboardListener;
+
     public void initialize() {
         requireState(LifecycleState.CREATED);
 
         robot.initializeInternal();
         robot.defineTelemetry();
         robot.initPowerBudget();
+
+        ServiceLoader<DashboardListener> loader = ServiceLoader.load(DashboardListener.class);
+        for (DashboardListener listener : loader) {
+            this.dashboardListener = listener;
+            if (listener instanceof DashboardAttachable) {
+                ((DashboardAttachable) listener).attach(robot, this);
+            }
+            break;
+        }
+
         state = LifecycleState.INITIALIZED;
     }
 
@@ -55,6 +68,7 @@ public final class Runtime {
         robot.powerBudget().update();
         signalBus.flush();
         telemetry.update();
+        if (dashboardListener != null) dashboardListener.onUpdate();
     }
 
     public void stop() {

@@ -29,6 +29,8 @@ func signalCmd() *cobra.Command {
 			return runSignalAddWizard()
 		},
 	})
+    cmd.AddCommand(signalListCmd())
+    cmd.AddCommand(signalModifyCmd())
 	return cmd
 }
 
@@ -241,7 +243,7 @@ func generateSignalFile(className string, kind signalKind, params []signalParam)
 	}
 
 	outputPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"signals",
 		className+".java",

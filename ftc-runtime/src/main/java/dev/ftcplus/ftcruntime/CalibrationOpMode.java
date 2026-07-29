@@ -1,6 +1,5 @@
 package dev.ftcplus.ftcruntime;
 
-import android.util.Log;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import dev.ftcplus.core.*;
 import dev.ftcplus.core.Runtime;
@@ -17,7 +16,6 @@ import java.util.Map;
 
 @TeleOp(name = "Calibration", group = "FTC+")
 public class CalibrationOpMode extends FtcPlusAdvancedOpMode {
-    private static final String LOG_TAG = "FTCPLUS_CALIBRATION";
 
     @Override
     public void runOpMode() {
@@ -131,28 +129,14 @@ public class CalibrationOpMode extends FtcPlusAdvancedOpMode {
     private void streamResult(CalibrationEntry entry, CalibrationResult result) {
         if (!result.isSuccess() || result.values.isEmpty()) return;
 
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        json.append("\"class\":\"").append(entry.instance.getClass().getName()).append("\",");
-        json.append("\"values\":{");
-
-        for (int i = 0; i < result.values.size(); i++) {
-            CalibrationResult.Value v = result.values.get(i);
-            if (i > 0) json.append(",");
-            json.append("\"").append(v.fieldName).append("\":").append(v.value);
+        java.util.Map<String, Object> values = new java.util.LinkedHashMap<>();
+        for (CalibrationResult.Value v : result.values) {
+            values.put(v.fieldName, v.value);
         }
 
-        json.append("}}");
-
-        Log.i(LOG_TAG, json.toString());
+        StreamingLog.calibration(entry.instance.getClass().getName(), values);
     }
 
-    public static void streamSettingChange(String className, String fieldName, Object value) {
-        String json = "{\"class\":\"" + className + "\","
-                + "\"field\":\"" + fieldName + "\","
-                + "\"value\":" + value + "}";
-        Log.i("FTCPLUS_SETTINGS", json);
-    }
 
     private Map<String, List<CalibrationEntry>> collectCalibrations(Component root) {
         Map<String, List<CalibrationEntry>> grouped = new LinkedHashMap<>();

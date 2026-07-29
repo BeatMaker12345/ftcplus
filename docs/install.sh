@@ -69,6 +69,14 @@ else
         "$FTCPLUS_DIR/template/FtcRobotController"
 fi
 
+echo "Building AST tool..."
+cd "$FTCPLUS_DIR"
+if [ ! -f "tools/ftcplus-ast.jar" ]; then
+  mkdir -p tools
+
+  curl -fsSL "https://github.com/BeatMaker12345/ftcplus/releases/latest/download/ftcplus-ast.jar" \
+    -o "tools/ftcplus-ast.jar"
+fi
 
 echo ""
 echo "✓ FTC+ $LATEST installed successfully!"

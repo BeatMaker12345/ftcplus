@@ -11,11 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import dev.ftcplus.core.Component;
-import dev.ftcplus.core.Robot;
+import dev.ftcplus.core.*;
 import dev.ftcplus.core.Runtime;
-import dev.ftcplus.core.Setting;
-import dev.ftcplus.core.SettingMenu;
 import dev.ftcplus.core.menu.MenuItem;
 import dev.ftcplus.core.menu.MenuHost;
 import dev.ftcplus.ftcruntime.menu.GamepadMenuInputSource;
@@ -311,7 +308,7 @@ public final class SettingsOpMode extends FtcPlusAdvancedOpMode {
             else if (type.isEnum())
                 editor.putString(key, ((Enum<?>) field.get(instance)).name());
             editor.apply();
-            CalibrationOpMode.streamSettingChange(
+            StreamingLog.setting(
                     field.getDeclaringClass().getName(),
                     field.getName(),
                     field.get(instance)

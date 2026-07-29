@@ -27,6 +27,7 @@ type projectConfig struct {
     SdkTag     string `json:"sdkTag"`
     FtcPlus    string `json:"ftcplus"`
     ControlHub string `json:"controlHub,omitempty"`
+    ActiveRobot string `json:"activeRobot"`
 }
 
 func newCmd() *cobra.Command {

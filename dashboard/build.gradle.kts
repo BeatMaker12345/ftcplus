@@ -8,15 +8,17 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
     implementation(project(":core"))
     implementation(project(":limelight"))
-    implementation(project(":dashboard"))
-    compileOnly(files("libs/RobotCore-classes.jar"))
-    compileOnly(files("libs/Hardware-classes.jar"))
-    compileOnly(files("libs/android-classes.jar"))
+    compileOnly(files("../ftc-runtime/libs/RobotCore-classes.jar"))
+    compileOnly(files("../ftc-runtime/libs/Hardware-classes.jar"))
+    compileOnly(files("../ftc-runtime/libs/android-classes.jar"))
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+    implementation("org.nanohttpd:nanohttpd-websocket:2.3.1")
 }
 
 java {

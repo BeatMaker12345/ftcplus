@@ -23,6 +23,8 @@ func hardwareCmd() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(hardwareAddCmd())
+	cmd.AddCommand(hardwareListCmd())
+	cmd.AddCommand(hardwareModifyCmd())
 	return cmd
 }
 
@@ -37,13 +39,13 @@ func hardwareAddCmd() *cobra.Command {
 	}
 }
 
-
 type hwType string
 
 const (
-	hwMotor   hwType = "motor"
-	hwServo   hwType = "servo"
-	hwCRServo hwType = "crservo"
+	hwMotor     hwType = "motor"
+	hwServo     hwType = "servo"
+	hwCRServo   hwType = "crservo"
+	hwLimelight hwType = "limelight"
 )
 
 type hwTypeItem struct{ t hwType }
@@ -87,7 +89,6 @@ func (m hwTypePicker) View() string {
 	return docStyle.Render(m.list.View())
 }
 
-
 type partItem struct {
 	name     string
 	constant string
@@ -98,10 +99,10 @@ func (i partItem) Description() string { return i.constant }
 func (i partItem) FilterValue() string { return i.name }
 
 type partPicker struct {
-	list     list.Model
-	choice   partItem
-	done     bool
-	noSpec   bool
+	list   list.Model
+	choice partItem
+	done   bool
+	noSpec bool
 }
 
 func (m partPicker) Init() tea.Cmd { return nil }
@@ -120,7 +121,6 @@ func (m partPicker) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, tea.Quit
 		case "tab":
-			// skip spec selection
 			m.noSpec = true
 			m.done = true
 			return m, tea.Quit
@@ -137,7 +137,6 @@ func (m partPicker) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m partPicker) View() string {
 	return docStyle.Render(m.list.View() + "\n\ntab to skip part selection")
 }
-
 
 type nameInputModel struct {
 	input textinput.Model
@@ -170,14 +169,14 @@ func (m nameInputModel) View() string {
 		labelStyle.Render("enter to confirm • esc to quit"))
 }
 
-
 func runHardwareAddWizard() error {
 	typeItems := []list.Item{
 		hwTypeItem{hwMotor},
 		hwTypeItem{hwServo},
 		hwTypeItem{hwCRServo},
+		hwTypeItem{hwLimelight},
 	}
-	typeList := list.New(typeItems, list.NewDefaultDelegate(), 40, 10)
+	typeList := list.New(typeItems, list.NewDefaultDelegate(), 40, 12)
 	typeList.Title = "Hardware type"
 	typeList.SetShowStatusBar(false)
 	typeList.SetFilteringEnabled(false)
@@ -192,39 +191,41 @@ func runHardwareAddWizard() error {
 	}
 	hwt := typePicked.choice
 
-	cat, err := catalog.Load()
-	if err != nil {
-		return fmt.Errorf("failed to load catalog: %w", err)
-	}
-
-	var partItems []list.Item
-	switch hwt {
-	case hwMotor:
-		for _, m := range cat.Motors {
-			partItems = append(partItems, partItem{name: m.Name, constant: m.Constant})
-		}
-	case hwServo:
-		for _, s := range cat.Servos {
-			partItems = append(partItems, partItem{name: s.Name, constant: s.Constant})
-		}
-	case hwCRServo:
-		for _, c := range cat.CRServos {
-			partItems = append(partItems, partItem{name: c.Name, constant: c.Constant})
-		}
-	}
-
-	partList := list.New(partItems, list.NewDefaultDelegate(), 60, 20)
-	partList.Title = fmt.Sprintf("Select %s model (tab to skip)", hwt)
-
-	pm, err := tea.NewProgram(partPicker{list: partList}, tea.WithAltScreen()).Run()
-	if err != nil {
-		return err
-	}
-	partPicked := pm.(partPicker)
-
 	var selectedConstant string
-	if !partPicked.noSpec && partPicked.done {
-		selectedConstant = partPicked.choice.constant
+	if hwt != hwLimelight {
+		cat, err := catalog.Load()
+		if err != nil {
+			return fmt.Errorf("failed to load catalog: %w", err)
+		}
+
+		var partItems []list.Item
+		switch hwt {
+		case hwMotor:
+			for _, m := range cat.Motors {
+				partItems = append(partItems, partItem{name: m.Name, constant: m.Constant})
+			}
+		case hwServo:
+			for _, s := range cat.Servos {
+				partItems = append(partItems, partItem{name: s.Name, constant: s.Constant})
+			}
+		case hwCRServo:
+			for _, c := range cat.CRServos {
+				partItems = append(partItems, partItem{name: c.Name, constant: c.Constant})
+			}
+		}
+
+		partList := list.New(partItems, list.NewDefaultDelegate(), 60, 20)
+		partList.Title = fmt.Sprintf("Select %s model (tab to skip)", hwt)
+
+		pm, err := tea.NewProgram(partPicker{list: partList}, tea.WithAltScreen()).Run()
+		if err != nil {
+			return err
+		}
+		partPicked := pm.(partPicker)
+
+		if !partPicked.noSpec && partPicked.done {
+			selectedConstant = partPicked.choice.constant
+		}
 	}
 
 	ti := textinput.New()
@@ -244,14 +245,13 @@ func runHardwareAddWizard() error {
 	return generateHardwareFile(className, hwt, selectedConstant)
 }
 
-
 type hardwareTemplateData struct {
-	Package   string
-	ClassName string
-	BaseClass string
+	Package    string
+	ClassName  string
+	BaseClass  string
 	SpecImport string
-	SpecConst string
-	HasSpec   bool
+	SpecConst  string
+	HasSpec    bool
 }
 
 func generateHardwareFile(className string, hwt hwType, specConstant string) error {
@@ -260,30 +260,42 @@ func generateHardwareFile(className string, hwt hwType, specConstant string) err
 		return err
 	}
 
-	var baseClass, specImport string
-	switch hwt {
-	case hwMotor:
-		baseClass = "Motor"
-		specImport = "dev.ftcplus.core.motor.Motor"
-	case hwServo:
-		baseClass = "Servo"
-		specImport = "dev.ftcplus.core.servo.Servo"
-	case hwCRServo:
-		baseClass = "CRServo"
-		specImport = "dev.ftcplus.core.servo.CRServo"
-	}
+	var tmplStr string
+	var data hardwareTemplateData
 
-	data := hardwareTemplateData{
-		Package:   pkg,
-		ClassName: className,
-		BaseClass: baseClass,
-		SpecImport: specImport,
-		SpecConst: specConstant,
-		HasSpec:   specConstant != "",
+	if hwt == hwLimelight {
+		data = hardwareTemplateData{
+			Package:   pkg,
+			ClassName: className,
+		}
+		tmplStr = limelightFileTemplate
+	} else {
+		var baseClass, specImport string
+		switch hwt {
+		case hwMotor:
+			baseClass = "Motor"
+			specImport = "dev.ftcplus.core.motor.Motor"
+		case hwServo:
+			baseClass = "Servo"
+			specImport = "dev.ftcplus.core.servo.Servo"
+		case hwCRServo:
+			baseClass = "CRServo"
+			specImport = "dev.ftcplus.core.servo.CRServo"
+		}
+
+		data = hardwareTemplateData{
+			Package:    pkg,
+			ClassName:  className,
+			BaseClass:  baseClass,
+			SpecImport: specImport,
+			SpecConst:  specConstant,
+			HasSpec:    specConstant != "",
+		}
+		tmplStr = hardwareFileTemplate
 	}
 
 	outputPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"hardware",
 		className+".java",
@@ -293,7 +305,7 @@ func generateHardwareFile(className string, hwt hwType, specConstant string) err
 		return err
 	}
 
-	tmpl, err := template.New("").Parse(hardwareFileTemplate)
+	tmpl, err := template.New("").Parse(tmplStr)
 	if err != nil {
 		return err
 	}
@@ -330,10 +342,30 @@ public class {{.ClassName}} extends {{.BaseClass}} {
 }
 `
 
+var limelightFileTemplate = `package {{.Package}}.hardware;
+
+import dev.ftcplus.limelight.Limelight;
+import {{.Package}}.config.Hardware;
+
+public class {{.ClassName}} extends Limelight {
+
+    public {{.ClassName}}() {
+        super(Hardware./* TODO: set hardware entry */);
+    }
+
+    @Override
+    protected void onLimelightInitialize() {
+        setPipeline(0);
+        startPublishing();
+
+        // onAprilTag(5).edge().send(TargetAligned::new);
+    }
+}
+`
 
 func detectPackage() (string, error) {
 	var pkg string
-	err := filepath.Walk("TeamCode/src/main", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk("src/main", func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || info.Name() != "AndroidManifest.xml" {
 			return err
 		}
@@ -358,7 +390,11 @@ func detectPackage() (string, error) {
 		return "", err
 	}
 	if pkg == "" {
-		return "", fmt.Errorf("could not detect package — run this command from your project root")
+		cfg, err := readProjectConfig()
+		if err != nil {
+			return "", fmt.Errorf("could not detect package — run this command from your project root")
+		}
+		return cfg.Package, nil
 	}
 	return pkg, nil
 }

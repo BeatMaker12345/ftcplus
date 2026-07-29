@@ -29,6 +29,8 @@ func opModeCmd() *cobra.Command {
 			return runOpModeAddWizard()
 		},
 	})
+    cmd.AddCommand(opModeListCmd())
+    cmd.AddCommand(opModeModifyCmd())
 	return cmd
 }
 
@@ -215,7 +217,7 @@ func generateOpModeFile(className, dsName string, kind opModeKind) error {
 	}
 
 	outputPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"opmodes",
 		className+".java",

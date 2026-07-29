@@ -28,6 +28,8 @@ func subsystemCmd() *cobra.Command {
 			return runSubsystemAddWizard()
 		},
 	})
+    cmd.AddCommand(subsystemListCmd())
+    cmd.AddCommand(subsystemModifyCmd())
 	return cmd
 }
 
@@ -204,7 +206,7 @@ func generateSubsystemFile(className string, states []string, hardware []string)
 	}
 
 	outputPath := filepath.Join(
-		"TeamCode/src/main/java",
+		"src", "main", "java",
 		strings.ReplaceAll(pkg, ".", "/"),
 		"subsystems",
 		className+".java",

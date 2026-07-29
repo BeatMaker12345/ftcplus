@@ -27,6 +27,8 @@ public abstract class FtcPlusTeleOpMode extends LinearOpMode {
         configure();
 
         runtime.initialize();
+
+
         injectLimelights(robot, hardwareMap);
         waitForStart();
 
