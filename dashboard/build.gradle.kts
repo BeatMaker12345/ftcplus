@@ -34,3 +34,13 @@ publishing {
         }
     }
 }
+
+tasks.processResources {
+    dependsOn("buildWeb")
+}
+
+tasks.register<Exec>("buildWeb") {
+    workingDir("web")
+    commandLine("npm", "run", "build")
+    onlyIf { File("web/package.json").exists() }
+}

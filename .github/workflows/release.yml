@@ -59,6 +59,12 @@ jobs:
           name: ftcplus-ast.jar
           path: ast-tool/build/libs/ftcplus-ast.jar
 
+      - name: Build dashboard frontend
+        working-directory: dashboard/web
+        run: |
+          npm install
+          npm run build
+
   release:
     needs: build
     runs-on: ubuntu-latest

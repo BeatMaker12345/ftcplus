@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +38,43 @@ public final class FtcDashboardServer extends NanoWSD
         super(PORT);
     }
 
+    @Override
+    public Response serve(IHTTPSession session) {
+        String uri = session.getUri();
+
+        if (uri.equals("/") || uri.equals("/index.html")) {
+            return serveResource("/static/index.html", "text/html");
+        }
+        if (uri.startsWith("/assets/") || uri.startsWith("/fields/")) {
+            String mime = guessMime(uri);
+            return serveResource("/static" + uri, mime);
+        }
+
+        return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not found");
+    }
+
+    private Response serveResource(String path, String mime) {
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null) {
+            return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not found");
+        }
+        try {
+            byte[] bytes = stream.readAllBytes();
+            return newFixedLengthResponse(Response.Status.OK, mime, new java.io.ByteArrayInputStream(bytes), bytes.length);
+        } catch (IOException e) {
+            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain", e.getMessage());
+        }
+    }
+
+    private static String guessMime(String uri) {
+        if (uri.endsWith(".js"))   return "application/javascript";
+        if (uri.endsWith(".css"))  return "text/css";
+        if (uri.endsWith(".glb"))  return "model/gltf-binary";
+        if (uri.endsWith(".html")) return "text/html";
+        if (uri.endsWith(".png"))  return "image/png";
+        if (uri.endsWith(".svg"))  return "image/svg+xml";
+        return "application/octet-stream";
+    }
 
     @Override
     public void attach(Robot<?, ?, ?> robot, Runtime runtime) {
