@@ -11,9 +11,4 @@ export default defineConfig({
   optimizeDeps: {
     include: ['three'],
   },
-  resolve: {
-    alias: {
-      'three': 'three/build/three.module.js'
-    }
-  }
 })
