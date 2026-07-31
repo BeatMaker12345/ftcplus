@@ -8,4 +8,12 @@ export default defineConfig({
     outDir: '../src/main/resources/static',
     emptyOutDir: true,
   },
+  optimizeDeps: {
+    include: ['three'],
+  },
+  resolve: {
+    alias: {
+      'three': 'three/build/three.module.js'
+    }
+  }
 })
