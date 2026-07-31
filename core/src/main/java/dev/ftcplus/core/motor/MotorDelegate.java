@@ -9,6 +9,7 @@ public interface MotorDelegate {
     Direction getDirection();
     void setMode(RunMode mode);
     RunMode getMode();
+
     void setTargetPosition(int ticks);
     int getTargetPosition();
     int getCurrentPosition();

@@ -1,15 +1,15 @@
 package dev.ftcplus.drivetrains;
 
 import dev.ftcplus.core.Direction;
+import dev.ftcplus.core.Drive;
 import dev.ftcplus.core.GamepadAxis;
-import dev.ftcplus.core.Subsystem;
 import dev.ftcplus.core.motor.Motor;
 import dev.ftcplus.core.motor.RunMode;
 import dev.ftcplus.core.motor.ZeroPowerBehavior;
 import dev.ftcplus.core.sensor.Imu;
 import dev.ftcplus.core.statemachine.StateMachine;
 
-public abstract class TankDrive extends Subsystem<TankDrive.State> {
+public abstract class TankDrive extends Drive<TankDrive.State> {
     public enum State {IDLE, DRIVING}
 
     private final TankConfig config;
@@ -17,6 +17,8 @@ public abstract class TankDrive extends Subsystem<TankDrive.State> {
     private Motor left;
     private Motor right;
     private Imu imu;
+    private double inputForward;
+    private double inputTurn;
 
     protected TankDrive(TankConfig config) {
         config.validate();
@@ -56,6 +58,11 @@ public abstract class TankDrive extends Subsystem<TankDrive.State> {
         super.onInitialize();
     }
 
+    public void setInputs(double forward, double turn, double strafe) {
+        this.inputForward = forward;
+        this.inputTurn = turn;
+    }
+
     private Motor registerMotor(dev.ftcplus.core.HardwareEntry entry, dev.ftcplus.core.motor.MotorSpec spec) {
         Motor m = spec != null ? new TankMotor(entry, spec) : new TankMotor(entry);
         register(m);
@@ -65,8 +72,8 @@ public abstract class TankDrive extends Subsystem<TankDrive.State> {
     private void updateDrive() {
         if (config.controls == null) return;
 
-        double forward = -axisValue(config.controls.forward);
-        double turn    =  axisValue(config.controls.turn);
+        double forward = inputForward;
+        double turn    = inputTurn;
 
         if (config.mode == DriveMode.FIELD_CENTRIC && imu != null) {
             double heading = Math.toRadians(imu.getYaw());

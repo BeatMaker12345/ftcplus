@@ -18,7 +18,7 @@ public final class SignalBus {
 
         listeners
                 .computeIfAbsent(type, k -> new ArrayList<>())
-                .add(signal -> listener.accept(type.cast(signal)));
+                .add(wrapped);
 
         return new Subscription(() -> {
             List<Consumer<Signal>> list = listeners.get(type);
@@ -44,10 +44,11 @@ public final class SignalBus {
     }
 
     private void dispatch(Signal signal) {
-        List<Consumer<Signal>> targets = listeners.get(signal.getClass());
-        if (targets == null) return;
+        List<Consumer<Signal>> list = listeners.get(signal.getClass());
+        if (list == null) return;
+        new ArrayList<>(list).forEach(l -> l.accept(signal));
 
-        for (Consumer<Signal> listener : targets) {
+        for (Consumer<Signal> listener : list) {
             listener.accept(signal);
         }
     }

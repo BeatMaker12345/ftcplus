@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":ftc-runtime"))
+    implementation(project(":runtime"))
     implementation(project(":core"))
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

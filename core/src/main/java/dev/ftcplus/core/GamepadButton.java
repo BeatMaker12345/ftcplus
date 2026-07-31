@@ -1,7 +1,6 @@
 package dev.ftcplus.core;
 
 public enum GamepadButton {
-    // Gamepad 1
     G1_A, G1_B, G1_X, G1_Y,
     G1_LB, G1_RB,
     G1_LT, G1_RT,
@@ -9,7 +8,6 @@ public enum GamepadButton {
     G1_START, G1_BACK,
     G1_DPAD_UP, G1_DPAD_DOWN, G1_DPAD_LEFT, G1_DPAD_RIGHT,
 
-    // Gamepad 1 PS aliases
     G1_CROSS     (G1_A),
     G1_CIRCLE    (G1_B),
     G1_SQUARE    (G1_X),
@@ -23,7 +21,6 @@ public enum GamepadButton {
     G1_OPTIONS   (G1_START),
     G1_SHARE     (G1_BACK),
 
-    // Gamepad 2
     G2_A, G2_B, G2_X, G2_Y,
     G2_LB, G2_RB,
     G2_LT, G2_RT,
@@ -31,7 +28,6 @@ public enum GamepadButton {
     G2_START, G2_BACK,
     G2_DPAD_UP, G2_DPAD_DOWN, G2_DPAD_LEFT, G2_DPAD_RIGHT,
 
-    // Gamepad 2 PS aliases
     G2_CROSS     (G2_A),
     G2_CIRCLE    (G2_B),
     G2_SQUARE    (G2_X),
@@ -45,7 +41,6 @@ public enum GamepadButton {
     G2_OPTIONS   (G2_START),
     G2_SHARE     (G2_BACK);
 
-    /** If non-null, this button is an alias that resolves to the canonical one. */
     public final GamepadButton canonical;
 
     GamepadButton() {

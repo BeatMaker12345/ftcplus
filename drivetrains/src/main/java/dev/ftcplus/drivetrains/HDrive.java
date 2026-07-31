@@ -1,15 +1,14 @@
 package dev.ftcplus.drivetrains;
 
 import dev.ftcplus.core.Direction;
-import dev.ftcplus.core.GamepadAxis;
-import dev.ftcplus.core.Subsystem;
+import dev.ftcplus.core.Drive;
 import dev.ftcplus.core.motor.Motor;
 import dev.ftcplus.core.motor.RunMode;
 import dev.ftcplus.core.motor.ZeroPowerBehavior;
 import dev.ftcplus.core.sensor.Imu;
 import dev.ftcplus.core.statemachine.StateMachine;
 
-public abstract class HDrive extends Subsystem<HDrive.State> {
+public abstract class HDrive extends Drive<HDrive.State> {
     public enum State { IDLE, DRIVING }
 
     private final HDriveConfig config;
@@ -18,6 +17,9 @@ public abstract class HDrive extends Subsystem<HDrive.State> {
     private Motor right;
     private Motor center;
     private Imu   imu;
+    private double inputForward;
+    private double inputStrafe;
+    private double inputTurn;
 
     protected HDrive(HDriveConfig config) {
         config.validate();
@@ -33,6 +35,12 @@ public abstract class HDrive extends Subsystem<HDrive.State> {
     protected void defineStates(StateMachine<State> states) {
         states.state(State.DRIVING).onUpdate(this::updateDrive);
         states.state(State.IDLE);
+    }
+
+    public void setInputs(double forward, double strafe, double turn) {
+        this.inputForward = forward;
+        this.inputStrafe = strafe;
+        this.inputTurn = turn;
     }
 
     @Override
@@ -68,9 +76,9 @@ public abstract class HDrive extends Subsystem<HDrive.State> {
     private void updateDrive() {
         if (config.controls == null) return;
 
-        double forward = -axisValue(config.controls.forward);
-        double turn    =  axisValue(config.controls.turn);
-        double strafe  =  axisValue(config.controls.strafe);
+        double forward = inputForward;
+        double turn    = inputTurn;
+        double strafe  = inputStrafe;
 
         if (config.mode == DriveMode.FIELD_CENTRIC && imu != null) {
             double heading = Math.toRadians(imu.getYaw());
@@ -91,11 +99,6 @@ public abstract class HDrive extends Subsystem<HDrive.State> {
         left.setPower(leftPower / max);
         right.setPower(rightPower / max);
         center.setPower(strafe / max);
-    }
-
-    private double axisValue(GamepadAxis axis) {
-        if (axis == null || gamepadFeedback() == null) return 0;
-        return gamepadFeedback().axisValue(axis);
     }
 
     public void stop() {

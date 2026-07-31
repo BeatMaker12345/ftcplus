@@ -7,7 +7,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
@@ -32,54 +31,6 @@ func opModeCmd() *cobra.Command {
     cmd.AddCommand(opModeListCmd())
     cmd.AddCommand(opModeModifyCmd())
 	return cmd
-}
-
-type opModeKind string
-
-const (
-	opModeTeleOp opModeKind = "TeleOp"
-	opModeAuto   opModeKind = "Autonomous"
-)
-
-type opModeKindItem struct{ k opModeKind }
-
-func (i opModeKindItem) Title() string       { return string(i.k) }
-func (i opModeKindItem) Description() string { return "" }
-func (i opModeKindItem) FilterValue() string { return string(i.k) }
-
-type opModeKindPicker struct {
-	list   list.Model
-	choice opModeKind
-	done   bool
-}
-
-func (m opModeKindPicker) Init() tea.Cmd { return nil }
-
-func (m opModeKindPicker) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc":
-			return m, tea.Quit
-		case "enter":
-			item, ok := m.list.SelectedItem().(opModeKindItem)
-			if ok {
-				m.choice = item.k
-				m.done = true
-			}
-			return m, tea.Quit
-		}
-	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
-	}
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
-}
-
-func (m opModeKindPicker) View() string {
-	return docStyle.Render(m.list.View())
 }
 
 type opModeWizardModel struct {
@@ -156,24 +107,6 @@ func (m opModeWizardModel) View() string {
 }
 
 func runOpModeAddWizard() error {
-	kindItems := []list.Item{
-		opModeKindItem{opModeTeleOp},
-		opModeKindItem{opModeAuto},
-	}
-	kindList := list.New(kindItems, list.NewDefaultDelegate(), 40, 8)
-	kindList.Title = "OpMode type"
-	kindList.SetShowStatusBar(false)
-	kindList.SetFilteringEnabled(false)
-
-	km, err := tea.NewProgram(opModeKindPicker{list: kindList}).Run()
-	if err != nil {
-		return err
-	}
-	kindPicked := km.(opModeKindPicker)
-	if !kindPicked.done {
-		return nil
-	}
-
 	m, err := tea.NewProgram(initialOpModeWizardModel()).Run()
 	if err != nil {
 		return err
@@ -184,36 +117,25 @@ func runOpModeAddWizard() error {
 		return nil
 	}
 
-	return generateOpModeFile(result.className, result.dsNameStr, kindPicked.choice)
+	return generateOpModeFile(result.className, result.dsNameStr)
 }
 
 type opModeTemplateData struct {
 	Package   string
 	ClassName string
 	DSName    string
-	Annotation string
-	BaseClass  string
 }
 
-func generateOpModeFile(className, dsName string, kind opModeKind) error {
+func generateOpModeFile(className, dsName string) error {
 	pkg, err := detectPackage()
 	if err != nil {
 		return err
 	}
 
-	annotation := "@TeleOp"
-	baseClass := "FtcPlusTeleOpMode"
-	if kind == opModeAuto {
-		annotation = "@Autonomous"
-		baseClass = "FtcPlusAutoOpMode"
-	}
-
 	data := opModeTemplateData{
-		Package:    pkg,
-		ClassName:  className,
-		DSName:     dsName,
-		Annotation: annotation,
-		BaseClass:  baseClass,
+		Package:   pkg,
+		ClassName: className,
+		DSName:    dsName,
 	}
 
 	outputPath := filepath.Join(
@@ -248,15 +170,15 @@ func generateOpModeFile(className, dsName string, kind opModeKind) error {
 
 var opModeTemplate = `package {{.Package}}.opmodes;
 
-import com.qualcomm.robotcore.eventloop.opmode.{{if eq .Annotation "@TeleOp"}}TeleOp{{else}}Autonomous{{end}};
-import dev.ftcplus.ftcruntime.{{.BaseClass}};
+import dev.ftcplus.runtime.OpMode;
+import dev.ftcplus.core.input.GamepadButton;
 
-{{.Annotation}}(name = "{{.DSName}}")
-public final class {{.ClassName}} extends {{.BaseClass}} {
+@OpMode.Register("TeleOp")
+public class {{.ClassName}} extends OpMode {
 
     @Override
     protected void configure() {
-        // configure controls here
+        // TODO: configure controls
     }
 }
 `

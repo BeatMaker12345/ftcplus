@@ -1,15 +1,14 @@
 package dev.ftcplus.drivetrains;
 
 import dev.ftcplus.core.Direction;
-import dev.ftcplus.core.GamepadAxis;
-import dev.ftcplus.core.Subsystem;
+import dev.ftcplus.core.Drive;
 import dev.ftcplus.core.motor.Motor;
 import dev.ftcplus.core.motor.RunMode;
 import dev.ftcplus.core.motor.ZeroPowerBehavior;
 import dev.ftcplus.core.sensor.Imu;
 import dev.ftcplus.core.statemachine.StateMachine;
 
-public abstract class MecanumDrive extends Subsystem<MecanumDrive.State> {
+public abstract class MecanumDrive extends Drive<MecanumDrive.State> {
     public enum State { IDLE, DRIVING }
 
     private final MecanumConfig config;
@@ -19,6 +18,7 @@ public abstract class MecanumDrive extends Subsystem<MecanumDrive.State> {
     private Motor backLeft;
     private Motor backRight;
     private Imu   imu;
+    private double inputForward = 0, inputStrafe = 0, inputTurn = 0;
 
     protected MecanumDrive(MecanumConfig config) {
         config.validate();
@@ -61,6 +61,12 @@ public abstract class MecanumDrive extends Subsystem<MecanumDrive.State> {
         super.onInitialize();
     }
 
+    public final void setInputs(double forward, double strafe, double turn) {
+        this.inputForward = forward;
+        this.inputStrafe  = strafe;
+        this.inputTurn    = turn;
+    }
+
     private Motor registerMotor(dev.ftcplus.core.HardwareEntry entry, dev.ftcplus.core.motor.MotorSpec spec) {
         Motor m = spec != null ? new DriveMotor(entry, spec) : new DriveMotor(entry);
         register(m);
@@ -70,9 +76,9 @@ public abstract class MecanumDrive extends Subsystem<MecanumDrive.State> {
     private void updateDrive() {
         if (config.controls == null) return;
 
-        double strafe  =  axisValue(config.controls.strafe);
-        double forward = -axisValue(config.controls.forward);
-        double turn    =  axisValue(config.controls.turn);
+        double strafe  = inputStrafe;
+        double forward = inputForward;
+        double turn    = inputTurn;
 
         if (config.mode == DriveMode.FIELD_CENTRIC && imu != null) {
             double heading = Math.toRadians(imu.getYaw());
@@ -97,10 +103,6 @@ public abstract class MecanumDrive extends Subsystem<MecanumDrive.State> {
         backRight.setPower(br / max);
     }
 
-    private double axisValue(GamepadAxis axis) {
-        if (gamepadFeedback() == null) return 0;
-        return gamepadFeedback().axisValue(axis);
-    }
 
     public void resetHeading() {
         if (imu != null) imu.resetYaw();

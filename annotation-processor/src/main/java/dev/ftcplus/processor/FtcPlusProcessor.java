@@ -27,8 +27,8 @@ public class FtcPlusProcessor extends AbstractProcessor {
         List<String> robots      = new ArrayList<>();
         List<String> settings    = new ArrayList<>();
         List<String> diagnostics = new ArrayList<>();
+        List<String> opModes     = new ArrayList<>();
 
-        // @TeamRobot — collect class names
         for (Element el : roundEnv.getElementsAnnotatedWith(
                 processingEnv.getElementUtils().getTypeElement("dev.ftcplus.core.TeamRobot"))) {
             if (el.getKind() == ElementKind.CLASS) {
@@ -36,7 +36,6 @@ public class FtcPlusProcessor extends AbstractProcessor {
             }
         }
 
-        // @Setting — collect class#field
         for (Element el : roundEnv.getElementsAnnotatedWith(
                 processingEnv.getElementUtils().getTypeElement("dev.ftcplus.core.Setting"))) {
             if (el.getKind() == ElementKind.FIELD) {
@@ -45,7 +44,6 @@ public class FtcPlusProcessor extends AbstractProcessor {
             }
         }
 
-        // @Diagnostic — collect class#method
         for (Element el : roundEnv.getElementsAnnotatedWith(
                 processingEnv.getElementUtils().getTypeElement("dev.ftcplus.core.Diagnostic"))) {
             if (el.getKind() == ElementKind.METHOD) {
@@ -54,15 +52,22 @@ public class FtcPlusProcessor extends AbstractProcessor {
             }
         }
 
+        for (Element el : roundEnv.getElementsAnnotatedWith(
+                processingEnv.getElementUtils().getTypeElement("dev.ftcplus.runtime.OpMode.Register"))) {
+            if (el.getKind() == ElementKind.CLASS) {
+                opModes.add(((TypeElement) el).getQualifiedName().toString());
+            }
+        }
+
         if (roundEnv.processingOver()) {
-            generateRegistry(robots, settings, diagnostics);
+            generateRegistry(robots, settings, diagnostics, opModes);
             generated = true;
         }
 
         return true;
     }
 
-    private void generateRegistry(List<String> robots, List<String> settings, List<String> diagnostics) {
+    private void generateRegistry(List<String> robots, List<String> settings, List<String> diagnostics, List<String> opModes) {
         try {
             JavaFileObject file = processingEnv.getFiler()
                     .createSourceFile("dev.ftcplus.generated.FtcPlusRegistry");
@@ -105,6 +110,15 @@ public class FtcPlusProcessor extends AbstractProcessor {
                 w.println("        };");
                 w.println("    }");
                 w.println("}");
+
+                // opmodes
+                w.println("    public static Class<?>[] getOpModes() {");
+                w.println("        return new Class<?>[] {");
+                for (String c : opModes) {
+                    w.println("            " + c + ".class,");
+                }
+                w.println("        };");
+                w.println("    }");
             }
         } catch (IOException e) {
             processingEnv.getMessager().printMessage(

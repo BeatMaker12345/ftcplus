@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":limelight"))
     implementation(project(":dashboard"))
+    implementation(project(":runtime"))
     compileOnly(files("libs/RobotCore-classes.jar"))
     compileOnly(files("libs/Hardware-classes.jar"))
     compileOnly(files("libs/android-classes.jar"))

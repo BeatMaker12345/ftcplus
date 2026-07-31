@@ -8,72 +8,71 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import dev.ftcplus.core.Component;
 import dev.ftcplus.core.Robot;
 import dev.ftcplus.core.Runtime;
-import dev.ftcplus.ftcruntime.controls.Controls;
 import dev.ftcplus.limelight.Limelight;
+import dev.ftcplus.runtime.AdvancedOpMode;
+import dev.ftcplus.runtime.OpMode;
+import dev.ftcplus.runtime.controls.OpModeControls;
 
 import java.util.List;
 
 public abstract class FtcPlusTeleOpMode extends LinearOpMode {
-    private Runtime runtime;
-    private Controls controls;
+    private final OpMode opMode;
+
+    protected FtcPlusTeleOpMode(OpMode opMode) {
+        this.opMode = opMode;
+    }
 
     @Override
-    public final void runOpMode() {
-        Robot robot = resolveRobot();
-        runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap), new FtcTelemetryProvider(telemetry));
-        controls = new Controls(gamepad1, gamepad2, runtime.signalBus());
-        runtime.robot().attachGamepadFeedback(controls);
+    public void runOpMode() {
+        Robot<?, ?, ?> robot = resolveRobot();
+        FtcGamepadState gamepadState = new FtcGamepadState(gamepad1, gamepad2);
+        Runtime runtime = new Runtime(robot, new FtcDeviceFactory(hardwareMap), new FtcTelemetryProvider(telemetry));
+        OpModeControls controls = new OpModeControls(runtime.signalBus(), gamepadState, robot);
+        robot.attachGamepadFeedback(controls);
 
-        configure();
+        opMode.attachRuntime(runtime, controls);
+
+        if (opMode instanceof AdvancedOpMode adv) adv.onInit();
 
         runtime.initialize();
-
-
         injectLimelights(robot, hardwareMap);
-        waitForStart();
 
+        while (!isStarted() && !isStopRequested()) {
+            if (opMode instanceof AdvancedOpMode adv) adv.initLoop();
+        }
         if (isStopRequested()) return;
 
         runtime.start();
+        if (opMode instanceof AdvancedOpMode adv) adv.onRun();
 
         while (opModeIsActive()) {
             controls.update();
             runtime.update();
+            if (opMode instanceof AdvancedOpMode adv) adv.runLoop();
         }
 
+        if (opMode instanceof AdvancedOpMode adv) adv.onStop();
         runtime.stop();
     }
 
-    protected void configure() {}
-
-    protected final Runtime runtime() {
-        return runtime;
-    }
-
-    protected final Object controls() {
-        return controls;
-    }
-
-
     private Robot<?, ?, ?> resolveRobot() {
-        List<Class<?>> classes = RobotResolver.findRobotClasses();
+        List<Class<?>> classes = dev.ftcplus.runtime.RobotResolver.findRobotClasses();
         SharedPreferences prefs = hardwareMap.appContext
                 .getSharedPreferences("ftcplus_settings", Context.MODE_PRIVATE);
-        return RobotResolver.resolveFromPrefs(classes, prefs, getClass());
+        return FtcRobotResolver.resolveFromPrefs(classes, prefs, opMode.getClass());
     }
 
     private void injectLimelights(Component component, HardwareMap hwMap) {
-        if (component instanceof Limelight) {
-            Limelight ll = (Limelight) component;
+        if (component instanceof Limelight ll) {
             try {
                 Limelight3A sdk = hwMap.get(Limelight3A.class, ll.entry().hardwareName());
                 ll.attachLimelight(sdk);
             } catch (Exception e) {
-                telemetry.addLine("Warning: Limelight '" + ll.entry().hardwareName() + "' not found in config.");
+                telemetry.addLine("Warning: Limelight '" + ll.entry().hardwareName() + "' not found.");
             }
-            for (Component child : component.children()) {
-                injectLimelights(child, hwMap);
-            }
+        }
+        for (Component child : component.children()) {
+            injectLimelights(child, hwMap);
         }
     }
 }

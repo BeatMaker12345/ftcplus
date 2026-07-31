@@ -1,7 +1,6 @@
 package dev.ftcplus.drivetrains;
 
-import dev.ftcplus.core.GamepadAxis;
-import dev.ftcplus.core.Subsystem;
+import dev.ftcplus.core.Drive;
 import dev.ftcplus.core.motor.Motor;
 import dev.ftcplus.core.motor.RunMode;
 import dev.ftcplus.core.motor.ZeroPowerBehavior;
@@ -13,7 +12,7 @@ import dev.ftcplus.core.statemachine.StateMachine;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SwerveDrive extends Subsystem<SwerveDrive.State> {
+public abstract class SwerveDrive extends Drive<SwerveDrive.State> {
     public enum State { IDLE, DRIVING }
 
     private static final double DEFAULT_HALF_WIDTH  = 7.0;
@@ -28,7 +27,9 @@ public abstract class SwerveDrive extends Subsystem<SwerveDrive.State> {
 
     private Imu imu;
     private double[] lastAngles;
-
+    private double inputForward;
+    private double inputStrafe;
+    private double inputTurn;
     protected SwerveDrive(SwerveConfig config) {
         config.validate();
         config.resolvePositions(DEFAULT_HALF_WIDTH, DEFAULT_HALF_LENGTH);
@@ -45,6 +46,12 @@ public abstract class SwerveDrive extends Subsystem<SwerveDrive.State> {
     protected void defineStates(StateMachine<State> states) {
         states.state(State.DRIVING).onUpdate(this::updateDrive);
         states.state(State.IDLE);
+    }
+
+    public void setInputs(double forward, double strafe, double turn) {
+        this.inputForward = forward;
+        this.inputStrafe = strafe;
+        this.inputTurn = turn;
     }
 
     @Override
@@ -82,9 +89,9 @@ public abstract class SwerveDrive extends Subsystem<SwerveDrive.State> {
     private void updateDrive() {
         if (config.controls == null) return;
 
-        double strafe  =  axisValue(config.controls.strafe);
-        double forward = -axisValue(config.controls.forward);
-        double turn    =  axisValue(config.controls.turn);
+        double strafe  = inputStrafe;
+        double forward = inputForward;
+        double turn    = inputTurn;
 
         if (config.mode == DriveMode.FIELD_CENTRIC && imu != null) {
             double heading = Math.toRadians(imu.getYaw());
@@ -162,10 +169,6 @@ public abstract class SwerveDrive extends Subsystem<SwerveDrive.State> {
         }
     }
 
-    private double axisValue(GamepadAxis axis) {
-        if (axis == null || gamepadFeedback() == null) return 0;
-        return gamepadFeedback().axisValue(axis);
-    }
 
     public void stop() {
         for (Motor m : driveMotors) m.setPower(0);

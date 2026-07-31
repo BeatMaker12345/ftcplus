@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-/**
- * Full dashboard telemetry implementation.
- * Collects all entries and serializes to JSON each loop.
- */
 public final class DashboardTelemetryProvider implements TelemetryProvider {
 
     private final List<TelemetryEntry> entries = new ArrayList<>();

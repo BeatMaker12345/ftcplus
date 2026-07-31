@@ -229,6 +229,7 @@ repositories {
 dependencies {
     implementation(project(":FtcRobotController"))
     implementation("dev.ftcplus:core:{{.FtcPlusVersion}}")
+    implementation("dev.ftcplus:runtime:{{.FtcPlusVersion}}")
     implementation("dev.ftcplus:ftc-runtime:{{.FtcPlusVersion}}")
     implementation("dev.ftcplus:catalog:{{.FtcPlusVersion}}")
     implementation("dev.ftcplus:drivetrains:{{.FtcPlusVersion}}")

@@ -80,6 +80,7 @@ public final class FtcDashboardServer extends NanoWSD
     public void attach(Robot<?, ?, ?> robot, Runtime runtime) {
         this.robot   = robot;
         this.runtime = runtime;
+        if (System.getProperty("junit.jupiter.execution") != null || isTestEnvironment()) return;
         startServer();
     }
 
@@ -225,6 +226,15 @@ public final class FtcDashboardServer extends NanoWSD
             for (Component child : component.children()) {
                 walkAndSetSetting(child, className, fieldName, value);
             }
+        }
+    }
+
+    private boolean isTestEnvironment() {
+        try {
+            Class.forName("org.junit.jupiter.api.Test");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
 }
